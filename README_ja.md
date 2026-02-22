@@ -1,4 +1,4 @@
-# Copilot Agent Mission Board
+# GH-Copilot Multi Agent Mission Board
 
 [English version here](README.md)
 

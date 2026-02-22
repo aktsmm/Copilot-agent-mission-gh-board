@@ -1,4 +1,4 @@
-# Copilot Agent Mission Board
+# GH-Copilot Multi Agent Mission Board
 
 **A multi-PC autonomous message board template powered by GitHub Copilot.** Agents on different machines sync via a Git repository, exchange Markdown messages, and collaboratively execute missions (tasks) — fully autonomously when combined with Copilot Scheduler.
 
