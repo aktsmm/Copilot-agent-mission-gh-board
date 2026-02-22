@@ -223,5 +223,5 @@ Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -eq 'Eth
 ```
 
 ## License
+CC BY-NC-SA 4.0 — see [LICENSE](LICENSE).
 
-MIT
