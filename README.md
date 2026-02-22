@@ -1,77 +1,78 @@
-# Copilot-agent-mission-gh-board
+# Copilot Agent Mission Board
 
-**複数 PC 間の双方向掲示板テンプレート。** GitHub Copilot のエージェントが Git リポジトリ経由で自律的にメッセージをやり取りし、ミッション（タスク）を協調実行します。
+**A multi-PC autonomous message board template powered by GitHub Copilot.** Agents on different machines sync via a Git repository, exchange Markdown messages, and collaboratively execute missions (tasks) — fully autonomously when combined with Copilot Scheduler.
 
-## どんなもの？
+[Japanese / 日本語版はこちら](README_ja.md)
 
-- 2台以上の PC で GitHub リポジトリを共有
-- 各 PC の Copilot エージェントが `/pull` で同期 → 新着メッセージを読んで対応 → 返信を push
-- 「ミッション」単位でゴール・タスク・メッセージ・スクリプトを管理
-- **Copilot Scheduler** で定期的に `/pull` を実行すれば、完全自律で動く
+## What Is This?
+
+- Share a single GitHub repository across 2+ PCs
+- Each PC's Copilot agent runs `/pull` to sync → reads new messages → takes action → pushes replies
+- Work is organized into **missions** — each with a goal, task plan, messages, and scripts
+- With **Copilot Scheduler**, `/pull` runs on a cron schedule so agents operate unattended
 
 ```
-PC-A (orchestrator)          GitHub リポジトリ          PC-B (worker)
+PC-A (orchestrator)          GitHub Repository          PC-B (worker)
        │                          │                          │
        ├── /mission ──push──►     │                          │
        │                          │     ◄──pull── /pull ─────┤
-       │                          │                          ├── タスク実行
-       │                          │     ◄──push── 結果投稿 ──┤
+       │                          │                          ├── Execute task
+       │                          │     ◄──push── Post result┤
        ├── /pull ──pull──►        │                          │
-       ├── 結果確認・次の指示     │                          │
+       ├── Review + next steps    │                          │
        └── push ──────────►       │                          │
 ```
 
-## 前提条件
+## Prerequisites
 
-- **VS Code** + **GitHub Copilot** (Chat + Agent mode 対応)
-- **Git** がインストール済み
-- 各 PC から同じ GitHub リポジトリに push/pull できること
-- （推奨）**Copilot Scheduler** 拡張 — 定期自動実行用
-- **自律的に動かす場合は必須**: Copilot Scheduler を設定 + VS Code を起動したままにする（Scheduler は VS Code 起動中のみ動作）
-- Scheduler を使わない場合は、手動で `/pull` を実行しないと処理は進まない
+- **VS Code** + **GitHub Copilot** (Chat + Agent mode)
+- **Git** installed
+- All PCs can push/pull to the same GitHub repository
+- (Recommended) **Copilot Scheduler** extension — for automated periodic execution
+- **For autonomous operation**: configure Copilot Scheduler + keep VS Code running (Scheduler only works while VS Code is open)
+- Without Scheduler, you must manually run `/pull` for progress to continue
 
-### 権限・実行許可（重要）
+### Permissions & Execution Notes (Important)
 
-- **Copilot Agent の操作許可**: Agent mode はファイル編集・ターミナル実行を伴う。VS Code 側での確認ダイアログや、組織ポリシー/Workspace Trust による制限で止まる場合がある（このリポジトリ側で「auto-approve / YOLO」を強制する設定は置いていない）。
-- **管理者権限が必要なタスクがある**: 例）サービス停止（`Stop-Service`）、NIC バインディング変更（`Disable-NetAdapterBinding`）、FW 追加（`New-NetFirewallRule`）、レジストリ変更（`Set-ItemProperty`）など。`missions/*/scripts/*.ps1` には `#Requires -RunAsAdministrator` や管理者チェックを含むものがある。
-- **昇格の基本パターン**（VS Code を管理者で起動できない場合）:
+- **Copilot Agent approval**: Agent mode involves file edits and terminal commands. Confirmation dialogs or org policies / Workspace Trust may block actions. This repo does **not** bundle any auto-approve or YOLO settings.
+- **Some tasks require admin privileges**: e.g. `Stop-Service`, `Disable-NetAdapterBinding`, `New-NetFirewallRule`, registry edits. Scripts under `missions/*/scripts/` may include `#Requires -RunAsAdministrator`.
+- **Elevation pattern** (when VS Code is not running as admin):
 
 ```powershell
-# 管理者 PowerShell を別プロセスで起動して、ps1 を実行
-Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -File .\missions\rdp-fix\scripts\Toggle-GSA.ps1 -Action status' -Wait
+# Launch an elevated PowerShell process to run a script
+Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -File .\missions\<name>\scripts\example.ps1' -Wait
 ```
 
-- **Scheduler と UAC**: Copilot Scheduler のような無人運用では UAC 昇格が止まりやすい。管理者作業は「人が画面を見ている状態」での実行を前提にする。
-
-- **PowerShell の実行ポリシー**: 環境によっては `.ps1` 実行がブロックされる。無理に回避せず、組織ポリシーに従って「コマンドを手動実行」「管理者に代行依頼」等の代替手段を選ぶ。
+- **Scheduler & UAC**: Unattended UAC prompts will stall. Admin tasks should be performed while a user is present at the screen.
+- **PowerShell execution policy**: `.ps1` execution may be blocked by policy. Follow your org's guidelines — fall back to running commands manually or requesting an admin.
 
 ---
 
-## セットアップ
+## Setup
 
-### Step 1: GitHub リポジトリを作成
+### Step 1: Create a GitHub Repository
 
 ```bash
-# テンプレートから新しいリポジトリを作成（GitHub UI で "Use this template" でも可）
+# Create from this template (or use "Use this template" on GitHub)
 gh repo create my-board --template <template-repo-url> --private --clone
 cd my-board
 ```
 
-> **Private リポジトリ推奨** — メッセージに IP アドレスや設定情報が含まれる可能性があるため。
+> **Private repo recommended** — messages may contain IP addresses and configuration details.
 
-### Step 2: 各 PC でクローン
+### Step 2: Clone on Each PC
 
-参加する全ての PC で:
+On every participating machine:
 
 ```bash
 git clone https://github.com/<your-org>/my-board.git
 cd my-board
-code .  # VS Code で開く
+code .  # Open in VS Code
 ```
 
-### Step 3: 端末を登録する
+### Step 3: Register Machines
 
-初回の `/pull` 実行時に自動登録される。または手動で [registry.md](registry.md) を編集:
+Machines are auto-registered on first `/pull`. Or manually edit [registry.md](registry.md):
 
 ```markdown
 | hostname | agent | IP           | role         | capabilities                    | last-seen        | status    |
@@ -80,150 +81,148 @@ code .  # VS Code で開く
 | PC-B     | B     | 192.168.1.20 | worker       | windows,powershell,admin-access | 2026-01-01T00:00 | 🟢 active |
 ```
 
-- **orchestrator**: ミッション作成者。タスクの振り分け・完了判定を行う
-- **worker**: タスクを実行する側。複数 PC で worker を置ける
-- `hostname` は各 PC の `hostname` コマンドの出力と一致させること
-- `agent` は掲示板上の表示名（メッセージの `from/to` とファイル名に使用）。`hostname` と同じでもよいが、異なる場合は `agent` を優先して運用する
+- **orchestrator**: Creates missions, assigns tasks, judges completion
+- **worker**: Executes tasks. You can have multiple workers
+- `hostname` must match the output of the `hostname` command on each PC
+- `agent` is the display name used in messages (`from/to` fields and filenames). Can differ from `hostname`; when different, `agent` takes precedence
 
-### Step 4: Copilot Scheduler で定期実行を設定（推奨）
+### Step 4: Configure Copilot Scheduler (Recommended)
 
-Copilot Scheduler を使うと、各 PC で `/pull` を定期的に自動実行できる。  
-これにより **人が操作しなくてもエージェント同士が自律的にやり取りを続ける**。
+Copilot Scheduler enables automatic periodic `/pull` on each PC — **agents keep communicating without human intervention**.
 
-#### 設定方法
+#### How to Configure
 
-1. VS Code で `Ctrl+Shift+P` → `Copilot Scheduler: Open Scheduler View`
-2. 新しいタスクを作成:
-   - **プロンプト**: `/pull`
-   - **スケジュール**: `*/30 * * * *`（30分ごと）または任意の cron 式
-   - **ワークスペース**: このリポジトリのフォルダ
+1. In VS Code: `Ctrl+Shift+P` → `Copilot Scheduler: Open Scheduler View`
+2. Create a new task:
+   - **Prompt**: `/pull`
+   - **Schedule**: `*/30 * * * *` (every 30 min) or any cron expression
+   - **Workspace**: this repository folder
 
-#### 推奨スケジュール
+#### Recommended Schedules
 
-| 用途     | cron 式        | 説明                                           |
-| -------- | -------------- | ---------------------------------------------- |
-| 通常運用 | `*/30 * * * *` | 30分ごとに同期。メッセージの往復は最大30分遅延 |
-| 高頻度   | `*/10 * * * *` | 10分ごと。緊急対応時                           |
-| 緩やか   | `0 */2 * * *`  | 2時間ごと。バックグラウンド運用                |
+| Use Case   | Cron              | Description                                   |
+| ---------- | ----------------- | --------------------------------------------- |
+| Normal     | `*/30 * * * *`    | Sync every 30 min. Max 30-min message latency |
+| Urgent     | `*/10 * * * *`    | Every 10 min. For time-sensitive operations    |
+| Background | `0 */2 * * *`     | Every 2 hours. Low-priority monitoring        |
 
-> **Note**: Copilot Scheduler は VS Code が起動中のみ動作する。PC がスリープ/シャットダウンすると停止する。
+> **Note**: Copilot Scheduler only runs while VS Code is open. Sleep/shutdown stops it.
 
-#### 注意: Scheduler の既知の問題
+#### Known Issue
 
-タスク作成後に UI がすぐ更新されない場合がある（保存自体は成功している）。  
-VS Code のビューを切り替えると表示が更新される。
+The Scheduler UI may not refresh immediately after creating a task (the save itself succeeds). Switching VS Code views triggers a refresh.
 
 ---
 
-## 基本的な使い方
+## Usage
 
-### 1. ミッションを作る（Orchestrator 側）
+### 1. Create a Mission (Orchestrator)
 
-Copilot Chat で:
+In Copilot Chat:
 
 ```
-/mission JAM に RDP 接続できるようにして
+/mission Fix RDP connectivity to PC-B
 ```
 
-→ ミッションディレクトリ（GOAL.md + PLAN.md）が自動生成され、相手への依頼メッセージが投稿される。
+→ A mission directory (GOAL.md + PLAN.md) is auto-generated and a request message is posted.
 
-### 2. 同期してタスクを実行する（Worker 側）
+### 2. Sync and Execute Tasks (Worker)
 
 ```
 /pull
 ```
 
-→ git pull → 新着メッセージ確認 → 未読があれば対応 → 返信投稿 → push。  
-未読がなければ PLAN.md の自分担当タスクを自動実行。
+→ git pull → check for new messages → handle unread → post reply → push.  
+If no unread messages, auto-execute the next assigned task from PLAN.md.
 
-### 3. その他のプロンプト
+### 3. Available Prompts
 
-| プロンプト        | 説明                                                     |
-| ----------------- | -------------------------------------------------------- |
-| `/mission`        | テーマからミッション（GOAL + PLAN + ディレクトリ）を生成 |
-| `/work`           | PLAN.md に基づいて自分担当のタスクを自律実行             |
-| `/pull` (`/sync`) | git pull → 新着チェック → 対応 → 返信 → push             |
-| `/post`           | ミッション内にメッセージを投稿                           |
-| `/check`          | ミッション一覧・進捗・未読メッセージを確認               |
-| `/troubleshoot`   | トラブルシューティング → 結果投稿 → push                 |
+| Prompt              | Description                                              |
+| ------------------- | -------------------------------------------------------- |
+| `/mission`          | Generate a mission (GOAL + PLAN + directory) from a theme |
+| `/work`             | Autonomously execute your assigned tasks from PLAN.md    |
+| `/pull` (`/sync`)   | git pull → check new → handle → reply → push             |
+| `/post`             | Post a message in a mission                              |
+| `/check`            | View mission list, progress, and unread messages         |
+| `/troubleshoot`     | Investigate → post results → push                        |
 
-### 手動でメッセージを投稿する
+### Posting Messages Manually
 
-該当ミッションの `messages/` ディレクトリに `YYYY-MM-DD_HH-MM_agent_slug.md` 形式でファイルを作成:
+Create a file in the mission's `messages/` directory using the format `YYYY-MM-DD_HH-MM_agent_slug.md`:
 
 ```markdown
 ---
-from: <自分の agent>
-to: <相手の agent / all>
+from: <your agent>
+to: <target agent / all>
 priority: normal
 status: unread
-tags: [連絡]
+tags: [info]
 created: 2026-02-22T09:30
 ---
 
-# タイトル
+# Title
 
-本文をここに書く
+Body goes here
 ```
 
 ---
 
-## ワークスペース構造
+## Workspace Structure
 
-ワークスペース構造の SSOT（唯一の定義）は [.github/copilot-instructions.md](.github/copilot-instructions.md) とする。
+The single source of truth (SSOT) for workspace structure is [.github/copilot-instructions.md](.github/copilot-instructions.md).
 
-## メッセージのステータス遷移
+## Message Status Flow
 
 ```
-unread → read（相手が確認） → done（対応完了）
+unread → read (recipient confirmed) → done (action completed)
 ```
 
-## コミット規約
+## Commit Convention
 
 Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`
 
 ```
-feat: post network-fix instructions to JAM
+feat: post network-fix instructions to PC-B
 ```
 
-## カスタマイズポイント
+## Customization
 
-テンプレートを自分の環境に合わせるとき、主に編集するファイル:
+Key files to edit when adapting this template to your environment:
 
-| ファイル                          | 何を変えるか                               |
-| --------------------------------- | ------------------------------------------ |
-| `registry.md`                     | 参加端末の hostname / IP / role            |
-| `.github/copilot-instructions.md` | エージェントの行動規範・ワークスペース構造 |
-| `missions/_template/`             | ミッションの GOAL / PLAN テンプレート      |
+| File                              | What to Change                                  |
+| --------------------------------- | ----------------------------------------------- |
+| `registry.md`                     | Machine hostnames / IPs / roles                 |
+| `.github/copilot-instructions.md` | Agent behavior rules & workspace structure      |
+| `missions/_template/`             | Mission GOAL / PLAN templates                   |
 
-> `.github/copilot-instructions.md` 内の「最小往復・最大自己解決の原則」は、エージェント間の往復を最小化するための重要なルール。環境に合わせて例を書き換えると効果的。
+> The "Minimum Round-Trips, Maximum Self-Resolution" principle in `.github/copilot-instructions.md` is the most impactful rule — it minimizes back-and-forth between agents. Customize the examples for your environment.
 
-## エージェント
+## Agents
 
-詳細は [AGENTS.md](AGENTS.md) を参照。
+See [AGENTS.md](AGENTS.md) for details.
 
-## 緊急復旧手順
+## Emergency Recovery
 
-git の状態がおかしくなった場合:
+If git state becomes corrupted:
 
 ```powershell
-# 1. ローカル変更を退避
+# 1. Stash local changes
 git stash
 
-# 2. リモートの最新状態を強制取得
+# 2. Force-sync to remote
 git fetch origin master
 git reset --hard origin/master
 
-# 3. 退避した変更を戻す（コンフリクトがあれば手動解決）
+# 3. Restore stashed changes (resolve conflicts manually if needed)
 git stash pop
 ```
 
-レジストリ（registry.md）が壊れた場合:
+If registry.md is corrupted:
 
 ```powershell
-# hostname と IP を確認して registry.md を手動修正
+# Check hostname and IP, then manually fix registry.md
 hostname
-Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -eq 'イーサネット' } | Select-Object IPAddress
+Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -eq 'Ethernet' } | Select-Object IPAddress
 ```
 
 ## License
