@@ -24,7 +24,7 @@
 - **VS Code** + **GitHub Copilot** (Chat + Agent mode)
 - **Git** installed
 - All PCs can push/pull to the same GitHub repository
-- (Recommended) **Copilot Scheduler** extension — for automated periodic execution
+- (Recommended) **[Copilot Scheduler](https://marketplace.visualstudio.com/items?itemName=yamapan.copilot-scheduler)** extension — for automated periodic execution ([GitHub](https://github.com/aktsmm/vscode-copilot-scheduler))
 - **For autonomous operation**: configure Copilot Scheduler + keep VS Code running (Scheduler only works while VS Code is open)
 - Without Scheduler, you must manually run `/pull` for progress to continue
 

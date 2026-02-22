@@ -24,7 +24,7 @@
 - **VS Code** + **GitHub Copilot** (Chat + Agent mode 対応)
 - **Git** がインストール済み
 - 各 PC から同じ GitHub リポジトリに push/pull できること
-- （推奨）**Copilot Scheduler** 拡張 — 定期自動実行用
+- （推奨）**[Copilot Scheduler](https://marketplace.visualstudio.com/items?itemName=yamapan.copilot-scheduler)** 拡張 — 定期自動実行用（[GitHub](https://github.com/aktsmm/vscode-copilot-scheduler)）
 - **自律的に動かす場合は必須**: Copilot Scheduler を設定 + VS Code を起動したままにする（Scheduler は VS Code 起動中のみ動作）
 - Scheduler を使わない場合は、手動で `/pull` を実行しないと処理は進まない
 
