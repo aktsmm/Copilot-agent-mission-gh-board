@@ -11,17 +11,13 @@
 - 「ミッション」単位でゴール・タスク・メッセージ・スクリプトを管理
 - **Copilot Scheduler** で定期的に `/pull` を実行すれば、完全自律で動く
 
-```
-PC-A (orchestrator)          GitHub リポジトリ          PC-B (worker)
-       │                          │                          │
-       ├── /mission ──push──►     │                          │
-       │                          │     ◄──pull── /pull ─────┤
-       │                          │                          ├── タスク実行
-       │                          │     ◄──push── 結果投稿 ──┤
-       ├── /pull ──pull──►        │                          │
-       ├── 結果確認・次の指示     │                          │
-       └── push ──────────►       │                          │
-```
+### アーキテクチャ
+
+![Architecture](docs/architecture.svg)
+
+### /pull ワークフロー
+
+![Workflow](docs/workflow.svg)
 
 ## 前提条件
 

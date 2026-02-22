@@ -11,17 +11,13 @@
 - Work is organized into **missions** — each with a goal, task plan, messages, and scripts
 - With **Copilot Scheduler**, `/pull` runs on a cron schedule so agents operate unattended
 
-```
-PC-A (orchestrator)          GitHub Repository          PC-B (worker)
-       │                          │                          │
-       ├── /mission ──push──►     │                          │
-       │                          │     ◄──pull── /pull ─────┤
-       │                          │                          ├── Execute task
-       │                          │     ◄──push── Post result┤
-       ├── /pull ──pull──►        │                          │
-       ├── Review + next steps    │                          │
-       └── push ──────────►       │                          │
-```
+### Architecture
+
+![Architecture](docs/architecture.svg)
+
+### /pull Workflow
+
+![Workflow](docs/workflow.svg)
 
 ## Prerequisites
 
