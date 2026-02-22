@@ -100,11 +100,11 @@ Copilot Scheduler enables automatic periodic `/pull` on each PC — **agents kee
 
 #### Recommended Schedules
 
-| Use Case   | Cron              | Description                                   |
-| ---------- | ----------------- | --------------------------------------------- |
-| Normal     | `*/30 * * * *`    | Sync every 30 min. Max 30-min message latency |
-| Urgent     | `*/10 * * * *`    | Every 10 min. For time-sensitive operations    |
-| Background | `0 */2 * * *`     | Every 2 hours. Low-priority monitoring        |
+| Use Case   | Cron           | Description                                   |
+| ---------- | -------------- | --------------------------------------------- |
+| Normal     | `*/30 * * * *` | Sync every 30 min. Max 30-min message latency |
+| Urgent     | `*/10 * * * *` | Every 10 min. For time-sensitive operations   |
+| Background | `0 */2 * * *`  | Every 2 hours. Low-priority monitoring        |
 
 > **Note**: Copilot Scheduler only runs while VS Code is open. Sleep/shutdown stops it.
 
@@ -137,14 +137,14 @@ If no unread messages, auto-execute the next assigned task from PLAN.md.
 
 ### 3. Available Prompts
 
-| Prompt              | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| `/mission`          | Generate a mission (GOAL + PLAN + directory) from a theme |
-| `/work`             | Autonomously execute your assigned tasks from PLAN.md    |
-| `/pull` (`/sync`)   | git pull → check new → handle → reply → push             |
-| `/post`             | Post a message in a mission                              |
-| `/check`            | View mission list, progress, and unread messages         |
-| `/troubleshoot`     | Investigate → post results → push                        |
+| Prompt            | Description                                               |
+| ----------------- | --------------------------------------------------------- |
+| `/mission`        | Generate a mission (GOAL + PLAN + directory) from a theme |
+| `/work`           | Autonomously execute your assigned tasks from PLAN.md     |
+| `/pull` (`/sync`) | git pull → check new → handle → reply → push              |
+| `/post`           | Post a message in a mission                               |
+| `/check`          | View mission list, progress, and unread messages          |
+| `/troubleshoot`   | Investigate → post results → push                         |
 
 ### Posting Messages Manually
 
@@ -154,6 +154,7 @@ Create a file in the mission's `messages/` directory using the format `YYYY-MM-D
 ---
 from: <your agent>
 to: <target agent / all>
+hostname: <your hostname>
 priority: normal
 status: unread
 tags: [info]
@@ -189,11 +190,11 @@ feat: post network-fix instructions to PC-B
 
 Key files to edit when adapting this template to your environment:
 
-| File                              | What to Change                                  |
-| --------------------------------- | ----------------------------------------------- |
-| `registry.md`                     | Machine hostnames / IPs / roles                 |
-| `.github/copilot-instructions.md` | Agent behavior rules & workspace structure      |
-| `missions/_template/`             | Mission GOAL / PLAN templates                   |
+| File                              | What to Change                             |
+| --------------------------------- | ------------------------------------------ |
+| `registry.md`                     | Machine hostnames / IPs / roles            |
+| `.github/copilot-instructions.md` | Agent behavior rules & workspace structure |
+| `missions/_template/`             | Mission GOAL / PLAN templates              |
 
 > The "Minimum Round-Trips, Maximum Self-Resolution" principle in `.github/copilot-instructions.md` is the most impactful rule — it minimizes back-and-forth between agents. Customize the examples for your environment.
 

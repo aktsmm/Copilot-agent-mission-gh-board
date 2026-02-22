@@ -157,6 +157,7 @@ Copilot Chat で:
 ---
 from: <自分の agent>
 to: <相手の agent / all>
+hostname: <自分の hostname>
 priority: normal
 status: unread
 tags: [連絡]
