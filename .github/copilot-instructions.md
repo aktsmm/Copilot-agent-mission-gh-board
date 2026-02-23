@@ -1,6 +1,6 @@
-# jam-board Copilot Instructions
+# GH-Copilot Multi Agent Mission Board - Copilot Instructions
 
-このワークスペースは **2台の PC 間の双方向掲示板 (jam-board)** です。
+このワークスペースは **複数 PC 間の双方向掲示板 (mission-board)** です。PC が2台以上あれば何台でも参加できます。
 Git リポジトリで同期し、Markdown ファイルでメッセージ・ログをやり取りします。
 
 ## 端末情報
@@ -12,7 +12,7 @@ Git リポジトリで同期し、Markdown ファイルでメッセージ・ロ�
 ## ワークスペース構造
 
 ```
-jam-board/
+mission-board/
 ├── GOAL.md                      # アクティブミッション一覧（ポインタ）
 ├── registry.md                  # 参加端末レジストリ（動的管理）
 ├── missions/                    # ミッション（テーマ）ごとのディレクトリ
@@ -44,14 +44,13 @@ jam-board/
 │       ├── check.prompt.md      # ミッション確認
 │       ├── sync.prompt.md       # pull のエイリアス
 │       └── troubleshoot.prompt.md # 新着確認→調査→結果投稿→push
-└── clean_env/                   # Python 仮想環境（操作不要）
 ```
 
 ## メッセージ規約
 
 - **配置場所**: メッセージは必ず該当ミッションの `messages/` ディレクトリ (`missions/<name>/messages/`) 内に作成する
-- **ファイル名**: `YYYY-MM-DD_HH-MM_agent_slug.md`（agent = registry.md の `agent`。例: `vainf`, `JAM`）
-  - 例: `missions/rdp-fix/messages/2026-02-22_07-00_vainf_rdp-reboot-plan.md`
+- **ファイル名**: `YYYY-MM-DD_HH-MM_agent_slug.md`（agent = registry.md の `agent`。例: `PC-A`, `PC-B`）
+  - 例: `missions/example-mission/messages/2026-02-22_07-00_PC-A_task-report.md`
 - **slug**: 英数字・ハイフンのみ、内容がわかる短い名前
 - **返信ルール**: 既存ファイルを編集せず、**新しいファイルを作成**して返信する。関連するメッセージは slug やタグで紐づける
 - **フォーマット**: 下記の YAML フロントマター + 本文
@@ -81,7 +80,7 @@ created: YYYY-MM-DDTHH:MM
 2. **ファイル名規約を厳守**: タイムスタンプ + `agent` + slug 形式
 3. **from/to を正確に**: `hostname` で自分の端末を特定し、`registry.md` の `agent` をメッセージの `from/to` とファイル名に使用する
 
-  - 補足: `hostname`（例: X600）と掲示板上の `agent`（例: vainf）が異なる場合がある。互換のため `to: <hostname>` も受理してよいが、基本は `agent` で運用する
+  - 補足: `hostname`（例: PC-A）と掲示板上の `agent`（例: A）が異なる場合がある。互換のため `to: <hostname>` も受理してよいが、基本は `agent` で運用する
 4. **git push は自動実行**: コミット後は自動で push する（リジェクト時は `git pull --no-edit` → 再 push）
 5. **破壊的操作の前に確認**: ファイル削除・アーカイブの前にユーザーに確認する
 6. **日本語で回答**: 会話はカジュアル、成果物は構造化
@@ -123,25 +122,25 @@ created: YYYY-MM-DDTHH:MM
 
 **❌ 悪い例（往復が増える）:**
 
-1. vainf: 「SMBが繋がらない、調べて」
-2. JAM: 「RejectUnencryptedAccess を直した、試して」
-3. vainf: 「まだダメ」
-4. JAM: 「LanmanServer 再起動した、試して」
-5. vainf: 「まだダメ」
-6. JAM: 「こっちは正常、そっちの FW では？」
+1. PC-A: 「SMBが繋がらない、調べて」
+2. PC-B: 「RejectUnencryptedAccess を直した、試して」
+3. PC-A: 「まだダメ」
+4. PC-B: 「LanmanServer 再起動した、試して」
+5. PC-A: 「まだダメ」
+6. PC-B: 「こっちは正常、そっちの FW では？」
 
 → **6往復**。毎回1つしか確認せず、部分的な対応を繰り返している
 
 **✅ 良い例（1-2往復で解決）:**
 
-1. vainf: 「SMBが繋がらない、調べて」
-2. JAM: 以下を **全て実施した上で** 1回で返信:
+1. PC-A: 「SMBが繋がらない、調べて」
+2. PC-B: 以下を **全て実施した上で** 1回で返信:
    - RejectUnencryptedAccess → False に修正済み
    - LanmanServer 再起動済み・動作確認済み
    - FW ルール全数確認済み（受信OK、20件以上 Allow）
    - ローカル SMB テスト正常確認済み
-   - JAM→vainf 方向の TCP 445 疎通も確認済み
-   - ∴ JAM側は100%正常。**vainf側の確認コマンド**（コピペで実行可能）:
+   - PC-B→PC-A 方向の TCP 445 疎通も確認済み
+   - ∴ PC-B側は100%正常。**PC-A側の確認コマンド**（コピペで実行可能）:
      ```powershell
      Get-NetConnectionProfile
      Get-NetFirewallRule | Where-Object { $_.Direction -eq 'Outbound' -and ... }
@@ -149,8 +148,8 @@ created: YYYY-MM-DDTHH:MM
      ```
    - Network Protection が有効だった場合の代替手段も **検証済み**:
      - (A) FWルール追加: `New-NetFirewallRule ...`（コマンド添付）
-     - (B) HTTP経由: JAM側で `python -m http.server 8080` **起動テスト済み**
-     - (C) SSH/SCP: JAM側の sshd 状態確認済み（未インストール→インストール手順添付）
+     - (B) HTTP経由: PC-B側で `python -m http.server 8080` **起動テスト済み**
+     - (C) SSH/SCP: PC-B側の sshd 状態確認済み（未インストール→インストール手順添付）
 
 → **2往復で全パターン網羅**。相手はどのパターンでも即座に対応できる
 
@@ -167,7 +166,7 @@ RDP接続不可、ファイル共有不可など **業務に直接影響する�
 ## コミット規約
 
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`
-- 例: `feat: post network-fix instructions to JAM`
+- 例: `feat: post network-fix instructions to PC-B`
 
 ## `/export-session-log` ルール
 
